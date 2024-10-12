@@ -29,7 +29,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err := c.BindJSON(&userRequest); err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Failed to unmarshall json")
+			c.String(500, "Failed to unmarshall json")
 			return
 		}
 
@@ -37,7 +37,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err == pgx.ErrNoRows {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(404, "User not found")
+			c.String(404, "User not found")
 			return
 		}
 
@@ -45,7 +45,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(401, "Unauthorized")
+			c.String(401, "Unauthorized")
 			return
 		}
 
@@ -53,7 +53,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Failed to generate token pair")
+			c.String(500, "Failed to generate token pair")
 			return
 		}
 
@@ -61,7 +61,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Failed to hash refresh token")
+			c.String(500, "Failed to hash refresh token")
 			return
 		}
 
@@ -75,7 +75,7 @@ func LoginHandler(db service.UserRepository, tc tokens.TokenController) gin.Hand
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Failed to add refresh token")
+			c.String(500, "Failed to add refresh token")
 			return
 		}
 

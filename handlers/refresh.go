@@ -25,7 +25,7 @@ import (
 // @Failure 404 {string} No refresh token found
 // @Failure 500 {string} Internal server error
 // @Router /auth/refresh [post]
-func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) gin.HandlerFunc {
+func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController, es service.EmailRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := c.Request.URL.Query()
 
@@ -33,7 +33,7 @@ func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) 
 		email := query["email"]
 
 		if refreshTokenString == nil || email == nil {
-			c.IndentedJSON(400, "Bad request")
+			c.String(400, "Bad request")
 			return
 		}
 
@@ -41,7 +41,7 @@ func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) 
 			c, email[0])
 
 		if err == pgx.ErrNoRows {
-			c.IndentedJSON(404, "No refresh token found")
+			c.String(404, "No refresh token found")
 			return
 		}
 
@@ -51,25 +51,25 @@ func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) 
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(401, "Invalid refresh token")
+			c.String(401, "Invalid refresh token")
 			return
 		}
 
 		if time.Now().Unix()-refreshToken.ExpiresAt.Unix() > 0 {
 			log.Printf("Refresh token for %s has expired", email[0])
-			c.IndentedJSON(401, "Expired refresh token")
+			c.String(401, "Expired refresh token")
 			return
 		}
 
 		if refreshToken.IpAddress != c.ClientIP() {
-			log.Printf(" [Warning] Different ip address for %s", email[0])
+			es.NotifyUser(c, email[0])
 		}
 
 		newTokenPair, err := tc.NewJWT(email[0], c.ClientIP())
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Internal server error")
+			c.String(500, "Internal server error")
 			return
 		}
 
@@ -77,7 +77,7 @@ func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) 
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Internal server error")
+			c.String(500, "Internal server error")
 			return
 		}
 
@@ -91,7 +91,7 @@ func RefreshTokensHandler(db service.UserRepository, tc tokens.TokenController) 
 
 		if err != nil {
 			log.Printf(" [Error] %s\n", err)
-			c.IndentedJSON(500, "Internal server error")
+			c.String(500, "Internal server error")
 			return
 		}
 

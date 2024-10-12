@@ -3,6 +3,7 @@ package tests
 import (
 	"encoding/json"
 	"medods_test_task/database"
+	"medods_test_task/email"
 	"medods_test_task/handlers"
 	"medods_test_task/middlewares"
 	"medods_test_task/models"
@@ -15,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setupRouter(userService *service.UserService, tc tokens.TokenController) *gin.Engine {
+func setupRouter(userService *service.UserService, tc tokens.TokenController, es *service.EmailService) *gin.Engine {
 	r := gin.Default()
 
 	v1 := r.Group("/api/v1")
@@ -28,7 +29,7 @@ func setupRouter(userService *service.UserService, tc tokens.TokenController) *g
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/login", handlers.LoginHandler(userService.Repo, tc))
-			auth.POST("/refresh", handlers.RefreshTokensHandler(userService.Repo, tc))
+			auth.POST("/refresh", handlers.RefreshTokensHandler(userService.Repo, tc, es.Repo))
 		}
 	}
 	return r
@@ -67,4 +68,7 @@ var MockTokenController tokens.TokenController = tokens.TokenController{
 	RefreshTokenTTL: 72 * time.Hour,
 }
 
-var router *gin.Engine = setupRouter(MockUserService, MockTokenController)
+var MockEmailRepository email.MockEmailRepository = email.MockEmailRepository{}
+var MockEmailService *service.EmailService = service.NewEmailService(&MockEmailRepository)
+
+var router *gin.Engine = setupRouter(MockUserService, MockTokenController, MockEmailService)

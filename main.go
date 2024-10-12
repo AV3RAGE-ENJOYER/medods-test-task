@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"medods_test_task/database"
+	"medods_test_task/email"
 	"medods_test_task/handlers"
 	"medods_test_task/middlewares"
 	"medods_test_task/service"
@@ -62,6 +63,7 @@ func main() {
 	defer db.Pool.Close()
 
 	userService := service.NewUserService(&db)
+
 	// Setup migrations
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -80,14 +82,19 @@ func main() {
 		log.Fatalf(" [Error] %s", err)
 	}
 
+	// Setup EmailService
+
+	mockEmailRepository := email.MockEmailRepository{}
+	emailService := service.NewEmailService(&mockEmailRepository)
+
 	// Setup Gin
 
 	gin.SetMode(GIN_MODE)
-	r := setupRouter(userService, tokenController)
+	r := setupRouter(userService, tokenController, emailService)
 	r.Run(GIN_ADDR)
 }
 
-func setupRouter(userService *service.UserService, tc tokens.TokenController) *gin.Engine {
+func setupRouter(userService *service.UserService, tc tokens.TokenController, es *service.EmailService) *gin.Engine {
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
@@ -101,7 +108,7 @@ func setupRouter(userService *service.UserService, tc tokens.TokenController) *g
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/login", handlers.LoginHandler(userService.Repo, tc))
-			auth.POST("/refresh", handlers.RefreshTokensHandler(userService.Repo, tc))
+			auth.POST("/refresh", handlers.RefreshTokensHandler(userService.Repo, tc, es.Repo))
 		}
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

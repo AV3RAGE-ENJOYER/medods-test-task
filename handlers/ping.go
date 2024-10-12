@@ -15,8 +15,6 @@ import (
 // @Router /user/ping [get]
 func PingHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.IndentedJSON(200, gin.H{
-			"message": "pong",
-		})
+		c.String(200, "pong")
 	}
 }

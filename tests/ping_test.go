@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -37,13 +36,6 @@ func TestPingRoute(t *testing.T) {
 	})
 
 	t.Run("ResponseBody", func(t *testing.T) {
-		var jsonResult map[string]string
-		err := json.Unmarshal(w.Body.Bytes(), &jsonResult)
-
-		if err != nil {
-			t.Error("Failed to unmarshall json")
-		}
-
-		assert.Equal(t, "pong", jsonResult["message"])
+		assert.Equal(t, "pong", w.Body.String())
 	})
 }

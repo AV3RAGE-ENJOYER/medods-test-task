@@ -26,7 +26,7 @@ func AddUserHandler(db service.UserRepository) gin.HandlerFunc {
 		var user UserRequest
 
 		if err := c.BindJSON(&user); err != nil {
-			c.IndentedJSON(400, "Bad request")
+			c.String(400, "Bad request")
 			return
 		}
 
@@ -35,7 +35,7 @@ func AddUserHandler(db service.UserRepository) gin.HandlerFunc {
 
 			if err != nil {
 				log.Printf(" [Error] %s\n", err)
-				c.IndentedJSON(500, "Failed to hash a password")
+				c.String(500, "Failed to hash a password")
 				return
 			}
 
@@ -48,7 +48,7 @@ func AddUserHandler(db service.UserRepository) gin.HandlerFunc {
 
 			if err != nil {
 				log.Printf(" [Error] %s\n", err)
-				c.IndentedJSON(500, "Failed to add a user")
+				c.String(500, "Failed to add a user")
 				return
 			}
 

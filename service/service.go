@@ -22,3 +22,17 @@ func NewUserService(repo UserRepository) *UserService {
 		Repo: repo,
 	}
 }
+
+type EmailRepository interface {
+	NotifyUser(ctx context.Context, email string) error
+}
+
+type EmailService struct {
+	Repo EmailRepository
+}
+
+func NewEmailService(repo EmailRepository) *EmailService {
+	return &EmailService{
+		Repo: repo,
+	}
+}
